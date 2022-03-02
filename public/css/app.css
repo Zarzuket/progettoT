@@ -10966,3 +10966,7 @@ a.text-dark:focus {
   height: 15.5rem;
   border: 1px solid red;
 }
+
+.no_border{
+  border: transparent;
+}

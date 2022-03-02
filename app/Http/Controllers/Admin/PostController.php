@@ -52,7 +52,7 @@ class PostController extends Controller
         $newPost->fill($request->all());
         
         $newPost->slug = $this->getSlug($request->title);
-        
+
         // SALVA ID UTENTE
         $newPost->user_id = Auth::id();
         $newPost->save();
@@ -77,9 +77,9 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Post $post)
     {
-        //
+        return view('admin.posts.edit',compact('post'));
     }
 
     /**
@@ -89,9 +89,20 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Post $post)
     {
-        //
+        //validations
+        $request->validate($this->validationRules);
+
+        if($post->title != $request->title) {
+            $post->slug = $this->getSlug($request->title);
+        }
+
+        $post->fill($request->all());
+
+        $post->save();
+
+        return redirect()->route("admin.posts.index")->with('success',"Il post {$post->id} è stato aggiornato");
     }
 
     /**
