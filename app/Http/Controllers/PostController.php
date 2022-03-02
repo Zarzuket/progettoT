@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -14,7 +15,8 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $posts = Post::all();
+        return view('guest.index',compact('posts'));
     }
 
     /**
@@ -24,7 +26,6 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -35,7 +36,7 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
     }
 
     /**
@@ -44,9 +45,17 @@ class PostController extends Controller
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function show(Post $post)
+    public function show($slug)
     {
-        //
+        // pagina singola tramite slug per parte front e non tramite id.
+        $post = Post::where('slug',$slug)->first();
+
+        // se cambia url non ad errore sql ma 404
+        if(!$post){
+            abort('404');
+        }
+
+        return view('guest.show',compact('post'));
     }
 
     /**

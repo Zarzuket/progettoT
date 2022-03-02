@@ -4,10 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Post;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
+    protected $validationRules = [
+        'title' => 'string|required|max:100',
+        'description' => 'string|required',
+        'user_id' => 'exists:users,id',
+    ];
+
     /**
      * Display a listing of the resource.
      *
@@ -26,7 +34,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.posts.create');
     }
 
     /**
@@ -37,7 +45,19 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //validations
+        $request->validate($this->validationRules);
+
+        $newPost = new Post();
+        $newPost->fill($request->all());
+        
+        $newPost->slug = $this->getSlug($request->title);
+        
+        // SALVA ID UTENTE
+        $newPost->user_id = Auth::id();
+        $newPost->save();
+
+        return redirect()->route("admin.posts.index")->with('success',"Il post è stato creato");
     }
 
     /**
@@ -84,5 +104,21 @@ class PostController extends Controller
     {
         $post->delete();
         return redirect()->route('admin.posts.index')->with('success',"Il Post {$post->id} è stato eliminato.");
+    }
+    private function getSlug($title)
+    {
+        $slug = Str::of($title)->slug('-');
+
+        $postExist = Post::where("slug", $slug)->first();
+
+        $count = 2;
+        
+        while($postExist) {
+            $slug = Str::of($title)->slug('-') . "-{$count}";
+            $postExist = Post::where("slug", $slug)->first();
+            $count++;
+        }
+
+        return $slug;
     }
 }

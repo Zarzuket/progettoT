@@ -10962,3 +10962,7 @@ a.text-dark:focus {
   }
 }
 
+.card_post{
+  height: 15.5rem;
+  border: 1px solid red;
+}

@@ -19,6 +19,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/','PageController@index');
+Route::get('/blog','PostController@index');
+Route::get('/blog{slug}','PostController@show')->name('posts.show');
 
 
 // ROTTE AUTENTICAZIONE
@@ -28,7 +30,7 @@ Auth::routes();
 Route::middleware('auth')->namespace('Admin')->name('admin.')->prefix('admin')->group(
     function(){
 
-        Route::get('/home', 'HomeController@index')->name('home');
+        Route::get('/', 'HomeController@index')->name('home');
         Route::resource('posts','PostController');
     }
 );
