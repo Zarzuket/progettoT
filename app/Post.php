@@ -11,4 +11,8 @@ class Post extends Model
     {
         return $this->belongsTo("App\User");
     }
+    public function images()
+    {
+        return $this->hasMany("App\Image");
+    }
 }

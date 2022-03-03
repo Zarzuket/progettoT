@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Post;
+use App\Image;
 use Illuminate\Support\Str;
 
 class PostController extends Controller
@@ -14,6 +15,7 @@ class PostController extends Controller
         'title' => 'string|required|max:100',
         'description' => 'string|required',
         'user_id' => 'exists:users,id',
+        "images" => "nullable",
     ];
 
     /**
@@ -23,8 +25,17 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::all();
-        return view('admin.posts.index',compact('posts'));
+
+        $user = Auth::user();
+        // restituist solo i post con l'user id associato al post.
+        $posts = Post::where("user_id", $user->id)->get();
+
+        $images = Image::all();
+        for($i = 0; $i < count($posts); $i++) {
+            $posts[$i]->images = $images->where("post_id", $posts[$i]->id); 
+        }
+
+        return view('admin.posts.index',compact('posts','images'));
     }
 
     /**
@@ -55,7 +66,27 @@ class PostController extends Controller
 
         // SALVA ID UTENTE
         $newPost->user_id = Auth::id();
+        // SALVO NUOVO POST
         $newPost->save();
+
+        // SALVA UN IMMAGINE
+        if ($request->hasfile('images')) {
+            // Utilizzo il nome originale
+            $imageData["name"] = explode(".", $request->images->getClientOriginalName())[0];
+
+            // Associo l'appartamento
+            $imageData["post_id"] = $newPost->id;
+
+            // Creo uno slug univoco
+            $imageData["url"] = Str::of($imageData["name"])->slug("-");  //$this->getImageSlug($imageData['name']);
+
+            // uso lo slug per immagazzinare l'immagine nella cartella public
+            // DA SPOSTARE IN RESOURCES???
+            $request->images->move(public_path() . "/images/", $imageData["url"]);
+
+            // salvo i dati dell'immagine nel database
+            Image::create($imageData);
+        }
 
         return redirect()->route("admin.posts.index")->with('success',"Il post è stato creato");
     }
@@ -67,7 +98,11 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show(Post $post)
-    {
+    {   
+        // se il post con l'user id è diverso dall'autentificazione non restituisce il post.
+        if ($post->user_id != Auth::id()) {
+            abort("403");
+        }
         return view('admin.posts.show',compact('post'));
     }
 
